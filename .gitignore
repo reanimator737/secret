@@ -1,0 +1,12 @@
+/node_modules
+
+# Misc
+.idea/
+.DS_Store
+/coverage
+
+# Environment
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
