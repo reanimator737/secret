@@ -11,7 +11,6 @@ import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 import AdbIcon from '@mui/icons-material/Adb';
 import { UserIcon } from '@/components/userIcon';
-import { ConnectButton } from '@/components/connectButton';
 
 const pages = ['Products', 'Pricing', 'Blog'];
 

@@ -5,7 +5,7 @@ import { store } from '@/store';
 import { NavBar } from '@/components/navBar';
 import React from 'react';
 import { DevSupport } from '@react-buddy/ide-toolbox';
-import { ComponentPreviews, useInitial } from '../dev';
+import { ComponentPreviews, useInitial } from '@/dev';
 
 export default function App({ Component, pageProps }: AppProps) {
   return (

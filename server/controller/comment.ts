@@ -1,10 +1,9 @@
+import { Response, Request } from 'express';
 import { Comment } from '../entity/comment';
 import { CommentRate } from '../entity/commentRate';
-import { Request, Response } from 'express';
 import { FindOneOptions, getRepository } from 'typeorm';
 import { User } from '../entity/user';
 import { OrderPost } from '../entity/orderPost';
-export { Response, Request } from 'express';
 
 class CommentController {
   async addComment(req: Request<{}, {}, Omit<Comment, 'id' | 'hasOwnerLike'>>, res: Response) {
@@ -27,7 +26,7 @@ class CommentController {
     res.json(deletedComment);
   }
 
-  async addLike(req: Request<{}, {}, { user: User; commentId: number }>, res) {
+  async addLike(req: Request<{}, {}, { user: User; commentId: number }>, res: Response) {
     const {
       user: { address, rate, id },
       commentId,
@@ -61,7 +60,7 @@ class CommentController {
     res.json(userCommentRate);
   }
 
-  async removeLike(req: Request<{}, {}, { user: User; commentId: number }>, res) {
+  async removeLike(req: Request<{}, {}, { user: User; commentId: number }>, res: Response) {
     const {
       user: { address },
       commentId,
@@ -94,7 +93,7 @@ class CommentController {
     res.json(userCommentRate);
   }
 
-  async addDislike(req: Request<{}, {}, { user: User; commentId: number }>, res) {
+  async addDislike(req: Request<{}, {}, { user: User; commentId: number }>, res: Response) {
     const {
       user: { address, rate, id },
       commentId,
@@ -128,7 +127,7 @@ class CommentController {
     res.json(userCommentRate);
   }
 
-  async removeDislike(req: Request<{}, {}, { user: User; commentId: number }>, res) {
+  async removeDislike(req: Request<{}, {}, { user: User; commentId: number }>, res: Response) {
     const {
       user: { address },
       commentId,
@@ -161,7 +160,7 @@ class CommentController {
     res.json(userCommentRate);
   }
 
-  async addOwnerLike(req: Request<{}, {}, { id: string; address: string }>, res) {
+  async addOwnerLike(req: Request<{}, {}, { id: string; address: string }>, res: Response) {
     const { id, address } = req.body;
     const CommentRepo = getRepository(Comment);
     const comment = await CommentRepo.findOneById(id);
@@ -185,7 +184,7 @@ class CommentController {
     res.json(comment);
   }
 
-  async removeOwnerLike(req: Request<{}, {}, { id: string; address: string }>, res) {
+  async removeOwnerLike(req: Request<{}, {}, { id: string; address: string }>, res: Response) {
     const { id, address } = req.body;
     const CommentRepo = getRepository(Comment);
     const comment = await CommentRepo.findOneById(id);
@@ -209,7 +208,7 @@ class CommentController {
     res.json(comment);
   }
 
-  async getAllComments(_, res) {
+  async getAllComments(_: never, res: Response) {
     const CommentRepo = getRepository(Comment);
     const comments = await CommentRepo.find();
     res.json(comments);
