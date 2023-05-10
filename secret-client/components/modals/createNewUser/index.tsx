@@ -5,6 +5,8 @@ import Avatar from '@mui/material/Avatar';
 import { isAddress } from 'ethers';
 import { useCreateNewUserMutation } from '@/store/service';
 import { LoadingButton } from '@mui/lab';
+import { useAppSelector } from '@/hooks/stateHooks';
+import { useGetSign } from '@/hooks/useSign';
 
 interface ICreateNewUserModalProps {
   isOpen: boolean;
@@ -12,16 +14,18 @@ interface ICreateNewUserModalProps {
 }
 
 export const CreateNewUserModal: React.FC<ICreateNewUserModalProps> = ({ isOpen, handleClose }) => {
-  const [updatePost, { error, isError, isLoading, isSuccess }] = useCreateNewUserMutation();
-  const [wallet, setWallet] = useState<string>();
+  const [createNewUser, { error, isError, isLoading, isSuccess }] = useCreateNewUserMutation();
+  const address = useAppSelector((state) => state.user.address);
+  const { call } = useGetSign();
+  const [wallet, setWallet] = useState<string>(address);
   const [walletError, setWalletError] = useState<string>('');
-  const [nickName, setNickName] = useState<string>();
-  const [description, setDescription] = useState<string>();
-  const [avatar, setAvatar] = useState<string>(null);
+  const [nickName, setNickName] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
+  const [avatar, setAvatar] = useState<File | null>(null);
 
   useEffect(() => {
     if (isError) {
-      setWalletError(error.error);
+      setWalletError(error.data.message);
     }
   }, [isError, setWalletError, error]);
 
@@ -47,20 +51,28 @@ export const CreateNewUserModal: React.FC<ICreateNewUserModalProps> = ({ isOpen,
   const onAvatarChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const newAvatar = event.target?.files?.[0];
     if (newAvatar) {
-      setAvatar(URL.createObjectURL(newAvatar));
+      setAvatar(newAvatar);
     }
   }, []);
 
-  const onButtonClick = useCallback(() => {
+  const onButtonClick = async () => {
     if (!isAddress(wallet)) {
       setWalletError('Incorrect wallet');
       return;
     }
 
-    updatePost({
-      address: wallet,
-    });
-  }, [wallet]);
+    const signMsg = await call();
+
+    if (avatar) {
+      let reader = new FileReader();
+      reader.readAsDataURL(avatar);
+      reader.onload = () => {
+        createNewUser({ address: wallet, nickName, description, avatar: reader.result, signMsg });
+      };
+    } else {
+      createNewUser({ address: wallet, nickName, description, signMsg });
+    }
+  };
 
   return (
     <Dialog
@@ -105,7 +117,7 @@ export const CreateNewUserModal: React.FC<ICreateNewUserModalProps> = ({ isOpen,
 
         <Grid container spacing={2} alignItems="center" marginTop={1}>
           <Grid item>
-            <Avatar alt="Remy Sharp" src={avatar} sx={{ width: 80, height: 80 }} />
+            <Avatar alt="Remy Sharp" src={avatar ? URL.createObjectURL(avatar) : ''} sx={{ width: 80, height: 80 }} />
           </Grid>
           <Grid item>
             <Button variant="contained" component="label">

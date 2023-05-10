@@ -1,4 +1,5 @@
 import React from 'react';
+import { CreateNewUserModal } from '@/components/modals/createNewUser';
 
 const Profile: React.FC = () => {
   /*
@@ -9,7 +10,8 @@ const Profile: React.FC = () => {
 
   return (
     <div style={{ height: '100vh' }}>
-      <div style={{ height: '200px', background: 'black' }}>1</div>
+      <div style={{ height: '200px', background: 'black' }}>malskfmnasdknfgoadnfgndasofjgnsdjpfhgdnfgkn</div>
+      <CreateNewUserModal isOpen={true} handleClose={() => undefined} />
     </div>
   );
 };

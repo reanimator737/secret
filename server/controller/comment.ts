@@ -27,10 +27,7 @@ class CommentController {
   }
 
   async addLike(req: Request<{}, {}, { user: User; commentId: number }>, res: Response) {
-    const {
-      user: { address, rate, id },
-      commentId,
-    } = req.body;
+    const { user, commentId } = req.body;
     const CommentRepo = getRepository(Comment);
     const comment = await CommentRepo.findOneById(commentId);
     if (!comment) {
@@ -38,19 +35,19 @@ class CommentController {
       return;
     }
 
-    if (comment.owner === address) {
+    if (comment.owner === user.address) {
       res.json({ todo: 'error' });
       return;
     }
 
     const CommentRateRepo = getRepository(CommentRate);
     let userCommentRate = await CommentRateRepo.findOne({
-      where: { comment: commentId, user: address },
+      where: { comment: commentId, user: user.address },
     } as FindOneOptions<CommentRate>);
 
     if (!userCommentRate) {
       userCommentRate = new CommentRate();
-      userCommentRate.user = { address, rate, id };
+      userCommentRate.user = user;
     }
 
     userCommentRate.is_disliked = false;
@@ -94,10 +91,7 @@ class CommentController {
   }
 
   async addDislike(req: Request<{}, {}, { user: User; commentId: number }>, res: Response) {
-    const {
-      user: { address, rate, id },
-      commentId,
-    } = req.body;
+    const { user, commentId } = req.body;
     const CommentRepo = getRepository(Comment);
     const comment = await CommentRepo.findOneById(commentId);
     if (!comment) {
@@ -105,19 +99,19 @@ class CommentController {
       return;
     }
 
-    if (comment.owner === address) {
+    if (comment.owner === user.address) {
       res.json({ todo: 'error' });
       return;
     }
 
     const CommentRateRepo = getRepository(CommentRate);
     let userCommentRate = await CommentRateRepo.findOne({
-      where: { comment: commentId, user: address },
+      where: { comment: commentId, user: user.address },
     } as FindOneOptions<CommentRate>);
 
     if (!userCommentRate) {
       userCommentRate = new CommentRate();
-      userCommentRate.user = { address, rate, id };
+      userCommentRate.user = user;
     }
 
     userCommentRate.is_disliked = true;

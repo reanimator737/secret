@@ -3,10 +3,17 @@ import { User } from '../entity/user';
 import { Request, Response } from 'express';
 
 class UserController {
-  async createUser(req: Request<{ address: string }>, res: Response) {
-    const { address } = req.body;
+  async createUser(req: Request<{}, {}, Omit<User, 'id' | 'rate'>>, res: Response) {
+    const { address, nickName, description, avatar } = req.body;
+
     const userRepository = getRepository(User);
-    const newUser = userRepository.create({ address: address, rate: 0 });
+
+    const existingUser = await userRepository.findOne({ where: { address } });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User with this address already exists' });
+    }
+
+    const newUser = userRepository.create({ address: address, rate: 0, description, nickName, avatar });
     await userRepository.save(newUser);
     res.json(newUser);
   }
@@ -17,8 +24,9 @@ class UserController {
   }
   async getUserByAddress(req: Request<{ address: string }>, res: Response) {
     const address = req.params.address;
+    console.log(address);
     const userRepository = getRepository(User);
-    const user = await userRepository.findOneBy({ address: address });
+    const user = await userRepository.findOneBy({ address });
     res.json(user);
   }
 

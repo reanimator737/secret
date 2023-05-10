@@ -10,4 +10,13 @@ export class User {
 
   @Column()
   rate: number;
+
+  @Column({ nullable: true })
+  nickName: string;
+
+  @Column({ nullable: true })
+  description: string;
+
+  @Column('bytea', { nullable: true })
+  avatar: Buffer;
 }

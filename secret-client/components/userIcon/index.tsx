@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
@@ -6,15 +6,18 @@ import Avatar from '@mui/material/Avatar';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/store';
 import { ConnectButton } from '@/components/connectButton';
+import { useAppSelector } from '@/hooks/stateHooks';
+import { useLazyGetUserByAddressQuery } from '@/store/service';
+import { CreateNewUserModal } from '@/components/modals/createNewUser';
 
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 
+//EXTRA TODO
 export const UserIcon: React.FC = () => {
-  const address = useSelector<RootState>((state) => state.user.address);
+  const signer = useAppSelector((state) => state.user.signer);
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement | undefined>(null);
+  const [getUserByAddress, { data, isLoading, isSuccess, isError }] = useLazyGetUserByAddressQuery();
 
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElUser(event.currentTarget);
@@ -24,8 +27,18 @@ export const UserIcon: React.FC = () => {
     setAnchorElUser(null);
   };
 
-  if (address) {
+  useEffect(() => {
+    if (signer) {
+      getUserByAddress(signer.address);
+    }
+  }, [signer, getUserByAddress]);
+
+  if (!signer) {
     return <ConnectButton />;
+  }
+  console.log(data);
+  if (isSuccess && data === null) {
+    return <CreateNewUserModal isOpen={true} handleClose={() => undefined} />;
   }
 
   return (

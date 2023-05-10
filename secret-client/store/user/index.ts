@@ -1,26 +1,46 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
-export interface CounterState {
-  address: string;
-}
+import { Nullable } from '@/interface/baseType';
+import { AbstractProvider, JsonRpcApiProvider, JsonRpcSigner } from 'ethers';
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
-const initialState: CounterState = {
+interface IUserState {
+  address: string;
+  signMsg: Nullable<string>;
+  signer: Nullable<JsonRpcSigner>;
+  provider: Nullable<AbstractProvider | JsonRpcApiProvider>;
+}
+
+const initialState: IUserState = {
   address: ZERO_ADDRESS,
+  signMsg: null,
+  signer: null,
+  provider: null,
 };
 
-export const userSlice = createSlice({
+const slice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    setUser: (state: typeof initialState, action: PayloadAction<string>) => {
+    setUser: (state, action: PayloadAction<string>) => {
       state.address = action.payload;
+    },
+    setSigner: (state, action: PayloadAction<JsonRpcSigner>) => {
+      state.signer = action.payload;
+      state.address = action.payload.address;
+      state.provider = action.payload.provider;
+    },
+
+    setProvider: (state, action: PayloadAction<AbstractProvider | JsonRpcApiProvider>) => {
+      state.provider = action.payload;
+    },
+
+    setSignMsg: (state, action: PayloadAction<string>) => {
+      state.signMsg = action.payload;
     },
   },
 });
 
-// Action creators are generated for each case reducer function
-export const { setUser } = userSlice.actions;
+export default slice.reducer;
 
-export default userSlice.reducer;
+export const { setUser, setSigner, setSignMsg, setProvider } = slice.actions;

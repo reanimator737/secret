@@ -1,14 +1,14 @@
 import { configureStore } from '@reduxjs/toolkit';
-import user from '@/store/user';
+import userSlice from './user';
 import { dataAPI } from '@/store/service';
 import { setupListeners } from '@reduxjs/toolkit/query';
 
-export const store = configureStore({
+const store = configureStore({
   reducer: {
-    user,
+    user: userSlice,
     [dataAPI.reducerPath]: dataAPI.reducer,
   },
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(dataAPI.middleware),
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware({ serializableCheck: false }).concat(dataAPI.middleware),
 });
 //TODO
 //@ts-ignore
@@ -18,3 +18,5 @@ setupListeners(store.dispatch);
 export type RootState = ReturnType<typeof store.getState>;
 // Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = typeof store.dispatch;
+
+export default store;
