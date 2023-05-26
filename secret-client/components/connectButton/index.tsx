@@ -20,7 +20,6 @@ export const ConnectButton: React.FC = () => {
         provider = new ethers.BrowserProvider(window.ethereum);
 
         let signer = await provider.getSigner();
-        console.log(signer);
         dispatch(setSigner(signer));
       } catch (e) {
         console.log(e);

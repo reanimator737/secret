@@ -22,22 +22,18 @@ contract Pool {
         address user;
     }
 
-    mapping(address => mapping(uint => Post)) usersPosts;
+    mapping(address => mapping(int => Post)) usersPosts;
 
-    constructor(address _tokenAddress){
-        token = SecretToken(_tokenAddress);
+    constructor(){
+        token = new SecretToken(msg.sender);
     }
 
-    function createNewPost(uint _value, uint _lifeTime) external{
-        require(_lifeTime >= 6 hours, "Post must exist for at least 6 hours");
-        require(_lifeTime <= 7 days, "Post must be closed no later than 7 days");
-        require(_value > 0, "Incorrect value");
-        require(token.balanceOf(msg.sender) >= _value, "Not enough tokens");
+    function createNewPost(uint _value, uint lifeTime) external{
+        require(token.balanceOf(msg.sender) > _value && _value > 0, "Incorrect value");
         uint allowance = token.allowance(msg.sender, address(this));
         require(allowance >= _value, "Check allowance");
         token.transferFrom(msg.sender, address(this), _value);
         totalPosts += 1;
-        usersPosts[msg.sender][totalPosts] = Post(_value, false, block.timestamp, _lifeTime + block.timestamp);
         emit GenerateNewPost(totalPosts, msg.sender, _value);
     }
 
@@ -51,7 +47,7 @@ contract Pool {
         usersPosts[_owner][_postId].isActive = true;
 
         for(uint i; i < _userActivity.length; i++){
-            uint value = _userActivity[i].likes + (_userActivity[i].hasOwnerLike ? ownerLikeGives : 0);
+            uint value = _userActivity[i].likes - _userActivity[i].dislikes + (_userActivity[i].hasOwnerLike ? ownerLikeGives : 0);
             token.transferFrom(_userActivity[i].user, address(this), value/total);
         }
     }

@@ -36,7 +36,7 @@ export const UserIcon: React.FC = () => {
   if (!signer) {
     return <ConnectButton />;
   }
-  console.log(data);
+
   if (isSuccess && data === null) {
     return <CreateNewUserModal isOpen={true} handleClose={() => undefined} />;
   }

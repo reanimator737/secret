@@ -63,15 +63,21 @@ export const CreateNewUserModal: React.FC<ICreateNewUserModalProps> = ({ isOpen,
 
     const signMsg = await call();
 
-    if (avatar) {
-      let reader = new FileReader();
-      reader.readAsDataURL(avatar);
-      reader.onload = () => {
-        createNewUser({ address: wallet, nickName, description, avatar: reader.result, signMsg });
-      };
-    } else {
-      createNewUser({ address: wallet, nickName, description, signMsg });
+    if (!signMsg) {
+      console.log('smth go wrong with signMsg');
+      return;
     }
+
+    const formData = new FormData();
+    formData.append('address', wallet);
+    formData.append('nickName', nickName ?? null);
+    formData.append('description', description ?? null);
+
+    if (avatar) {
+      formData.append('avatar', avatar);
+    }
+
+    createNewUser({ formData, signMsg });
   };
 
   return (

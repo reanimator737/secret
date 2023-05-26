@@ -17,6 +17,6 @@ export class User {
   @Column({ nullable: true })
   description: string;
 
-  @Column('bytea', { nullable: true })
-  avatar: Buffer;
+  @Column({ nullable: true })
+  avatar: string;
 }

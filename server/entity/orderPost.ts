@@ -12,6 +12,9 @@ export class OrderPost {
   @Column()
   description: string;
 
+  @Column()
+  reward: string;
+
   @ManyToOne(() => User)
   owner: User;
 }

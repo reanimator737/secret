@@ -9,6 +9,7 @@ import { CommentRate } from './entity/commentRate';
 import { OrderPost } from './entity/orderPost';
 import { User } from './entity/user';
 import { Comment } from './entity/comment';
+import path from 'path';
 
 createConnection({
   type: 'postgres',
@@ -25,6 +26,7 @@ createConnection({
 const app: Application = express();
 const port: string = process.env.PORT || '8080';
 app.use(express.json({ limit: '50mb' }));
+app.use('/public', express.static(path.join(__dirname, '/public')));
 app.use(cors());
 app.use('/api', userRouter);
 app.use('/api', orderPost);

@@ -11,9 +11,6 @@ export const checkUserAddress = (req: Request, res: Response, next: NextFunction
 
   const singAddress = verifyMessage('wallet verify', sign);
 
-  console.log(sign);
-  console.log(singAddress);
-
   if (singAddress !== req.body.address) {
     res.status(400).json({ error: 'Invalid sign' });
   }

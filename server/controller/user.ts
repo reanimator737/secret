@@ -4,7 +4,8 @@ import { Request, Response } from 'express';
 
 class UserController {
   async createUser(req: Request<{}, {}, Omit<User, 'id' | 'rate'>>, res: Response) {
-    const { address, nickName, description, avatar } = req.body;
+    const { address, nickName, description } = req.body;
+    const avatar = req.file?.filename;
 
     const userRepository = getRepository(User);
 
@@ -24,7 +25,6 @@ class UserController {
   }
   async getUserByAddress(req: Request<{ address: string }>, res: Response) {
     const address = req.params.address;
-    console.log(address);
     const userRepository = getRepository(User);
     const user = await userRepository.findOneBy({ address });
     res.json(user);

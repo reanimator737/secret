@@ -1,17 +1,13 @@
 import React from 'react';
-import { CreateNewUserModal } from '@/components/modals/createNewUser';
+import { useRouter } from 'next/router';
 
 const Profile: React.FC = () => {
-  /*
-  const router = useRouter();
-*/
-  /*  const [updatePost, result] = useCreateNewUserMutation();
-  const data = useGetAllUsersQuery();*/
-
+  const { query } = useRouter();
+  console.log('loaded');
+  console.log(query);
   return (
     <div style={{ height: '100vh' }}>
       <div style={{ height: '200px', background: 'black' }}>malskfmnasdknfgoadnfgndasofjgnsdjpfhgdnfgkn</div>
-      <CreateNewUserModal isOpen={true} handleClose={() => undefined} />
     </div>
   );
 };
