@@ -1,5 +1,5 @@
-import React from 'react';
-import { Dialog, DialogActions, DialogContent, DialogTitle, Grid, TextField } from '@mui/material';
+import React, { ChangeEvent, useCallback, useState } from 'react';
+import { Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 
 interface ICreateNewUserModalProps {
@@ -8,6 +8,25 @@ interface ICreateNewUserModalProps {
 }
 
 export const CreatePostModal: React.FC<ICreateNewUserModalProps> = ({ isOpen, handleClose }) => {
+  const [reward, setReward] = useState<number>(0);
+  const [description, setDescription] = useState<string>('');
+
+  const onRewardChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      if (+event.target.value > 0) {
+        setReward(+event.target.value);
+      }
+    },
+    [setReward],
+  );
+
+  const onDescriptionChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      setDescription(event.target.value);
+    },
+    [setDescription],
+  );
+
   return (
     <Dialog
       open={isOpen}
@@ -25,8 +44,8 @@ export const CreatePostModal: React.FC<ICreateNewUserModalProps> = ({ isOpen, ha
           type="number"
           multiline
           margin="dense"
-          onChange={onDescriptionChange}
-          value={description}
+          onChange={onRewardChange}
+          value={reward}
         />
 
         <TextField

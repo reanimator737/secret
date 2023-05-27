@@ -10,6 +10,7 @@ import { OrderPost } from './entity/orderPost';
 import { User } from './entity/user';
 import { Comment } from './entity/comment';
 import path from 'path';
+import { newPostWatcherEvent } from './watchers/newPost';
 
 createConnection({
   type: 'postgres',
@@ -33,6 +34,8 @@ app.use('/api', orderPost);
 app.use('/api', comments);
 
 app.listen(port);
+
+newPostWatcherEvent();
 
 /*// Server static assets if in production
 if (process.env.NODE_ENV === 'production') {
