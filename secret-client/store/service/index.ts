@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { BaseQueryArg } from '@reduxjs/toolkit/dist/query/baseQueryTypes';
 
 const TODO = 'http://localhost:8080/api/';
 
@@ -8,6 +9,12 @@ interface IUser {
   avatar?: Blob;
   nickName?: string;
   description?: string;
+}
+
+interface IPost {
+  title: string;
+  description: string;
+  owner: string;
 }
 
 //TODO
@@ -44,7 +51,21 @@ export const dataAPI = createApi({
       },
       invalidatesTags: ['User'],
     }),
+    createNewPost: builder.mutation({
+      query(arg: IPost) {
+        return {
+          url: '/order-post',
+          method: 'POST',
+          body: arg,
+        };
+      },
+    }),
   }),
 });
 
-export const { useLazyGetUserByAddressQuery, useCreateNewUserMutation, useGetUserByAddressQuery } = dataAPI;
+export const {
+  useLazyGetUserByAddressQuery,
+  useCreateNewUserMutation,
+  useGetUserByAddressQuery,
+  useCreateNewPostMutation,
+} = dataAPI;

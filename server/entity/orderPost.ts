@@ -13,7 +13,7 @@ export class OrderPost {
   description: string;
 
   @Column()
-  reward: string;
+  reward: number;
 
   @Column()
   isActive: boolean;
@@ -33,8 +33,8 @@ export class TemporaryPost {
   @Column()
   description: string;
 
-  @Index
   @Column()
+  @Index()
   secret: string;
 
   @Column({ type: 'timestamptz' })
