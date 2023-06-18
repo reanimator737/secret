@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useState } from 'react';
 import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
@@ -8,37 +8,41 @@ import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import { ConnectButton } from '@/components/connectButton';
 import { useAppSelector } from '@/hooks/stateHooks';
-import { useLazyGetUserByAddressQuery } from '@/store/service';
 import { CreateNewUserModal } from '@/components/modals/createNewUser';
+import { useGetUserData } from '@/hooks/api/useGetUserData';
+import Button from '@mui/material/Button';
 
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 
 //EXTRA TODO
 export const UserIcon: React.FC = () => {
-  const signer = useAppSelector((state) => state.user.signer);
+  const signer = useAppSelector((state) => state.connector.signer);
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement | undefined>(null);
-  const [getUserByAddress, { data, isLoading, isSuccess, isError }] = useLazyGetUserByAddressQuery();
+  const [isCreateNewUserOpen, setIsCreateNewUserOpen] = useState<boolean>(false);
 
-  const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
+  const { data, isSuccess } = useGetUserData();
+
+  const handleModalClose = useCallback(() => {
+    setIsCreateNewUserOpen((prev) => !prev);
+  }, []);
+  const handleOpenUserMenu = useCallback((event: React.MouseEvent<HTMLElement>) => {
     setAnchorElUser(event.currentTarget);
-  };
-
-  const handleCloseUserMenu = () => {
+  }, []);
+  const handleCloseUserMenu = useCallback(() => {
     setAnchorElUser(null);
-  };
-
-  useEffect(() => {
-    if (signer) {
-      getUserByAddress(signer.address);
-    }
-  }, [signer, getUserByAddress]);
+  }, []);
 
   if (!signer) {
     return <ConnectButton />;
   }
 
   if (isSuccess && data === null) {
-    return <CreateNewUserModal isOpen={true} handleClose={() => undefined} />;
+    return (
+      <>
+        <Button onClick={handleModalClose}>Create new account</Button>
+        <CreateNewUserModal isOpen={isCreateNewUserOpen} handleClose={handleModalClose} />
+      </>
+    );
   }
 
   return (

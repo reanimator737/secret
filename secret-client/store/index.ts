@@ -1,11 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit';
-import userSlice from './user';
+import connectorSlice from './connector';
 import { dataAPI } from '@/store/service';
 import { setupListeners } from '@reduxjs/toolkit/query';
 
 const store = configureStore({
   reducer: {
-    user: userSlice,
+    connector: connectorSlice,
     [dataAPI.reducerPath]: dataAPI.reducer,
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware({ serializableCheck: false }).concat(dataAPI.middleware),

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/hooks/stateHooks';
-import { setSignMsg } from '@/store/user';
+import { setSignMsg } from '@/store/connector';
 import { Nullable } from '@/interface/baseType';
 
 export const useSign = () => {
@@ -48,7 +48,7 @@ export const useGetSign = () => {
   const [hasError, setHasError] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string>('');
 
-  const { signMsg, signer } = useAppSelector((state) => state.user);
+  const { signMsg, signer } = useAppSelector((state) => state.connector);
   const dispatch = useAppDispatch();
 
   const call = useCallback(async (): Promise<Nullable<string>> => {

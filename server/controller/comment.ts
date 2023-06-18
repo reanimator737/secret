@@ -4,6 +4,7 @@ import { CommentRate } from '../entity/commentRate';
 import { FindOneOptions, getRepository } from 'typeorm';
 import { User } from '../entity/user';
 import { OrderPost } from '../entity/orderPost';
+import { io } from '../index';
 
 class CommentController {
   async addComment(req: Request<{}, {}, Omit<Comment, 'id' | 'hasOwnerLike'>>, res: Response) {
@@ -11,7 +12,8 @@ class CommentController {
     const CommentRepo = getRepository(Comment);
     const newComment = CommentRepo.create({ post, text, hasOwnerLike: false, owner });
     await CommentRepo.save(newComment);
-    res.json(newComment);
+    res.status(200).send(newComment);
+    io.to(`comment:${post.id}`).emit('newComment', newComment);
   }
 
   async removeComment(req: Request<{}, {}, Pick<Comment, 'id' | 'owner'>>, res: Response) {

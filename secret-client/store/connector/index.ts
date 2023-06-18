@@ -4,30 +4,24 @@ import { AbstractProvider, JsonRpcApiProvider, JsonRpcSigner } from 'ethers';
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
-interface IUserState {
-  address: string;
+interface Connector {
   signMsg: Nullable<string>;
   signer: Nullable<JsonRpcSigner>;
   provider: Nullable<AbstractProvider | JsonRpcApiProvider>;
 }
 
-const initialState: IUserState = {
-  address: ZERO_ADDRESS,
+const initialState: Connector = {
   signMsg: null,
   signer: null,
   provider: null,
 };
 
 const slice = createSlice({
-  name: 'user',
+  name: 'connector',
   initialState,
   reducers: {
-    setUser: (state, action: PayloadAction<string>) => {
-      state.address = action.payload;
-    },
     setSigner: (state, action: PayloadAction<JsonRpcSigner>) => {
       state.signer = action.payload;
-      state.address = action.payload.address;
       state.provider = action.payload.provider;
     },
 
@@ -43,4 +37,4 @@ const slice = createSlice({
 
 export default slice.reducer;
 
-export const { setUser, setSigner, setSignMsg, setProvider } = slice.actions;
+export const { setSigner, setSignMsg, setProvider } = slice.actions;

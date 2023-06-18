@@ -11,6 +11,7 @@ import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 import AdbIcon from '@mui/icons-material/Adb';
 import { UserIcon } from '@/components/userIcon';
+import Link from 'next/link';
 
 const pages = ['Products', 'Pricing', 'Blog'];
 
@@ -28,6 +29,7 @@ export const NavBar: React.FC = () => {
   return (
     <AppBar position="fixed">
       <Container maxWidth="xl">
+        <Link href="/profile/address/0xF392Cf390598f666a0d72f394F4Cb8E4c692E82e">Test</Link>
         <Toolbar disableGutters>
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
             <IconButton

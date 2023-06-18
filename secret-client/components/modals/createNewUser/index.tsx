@@ -15,9 +15,11 @@ interface ICreateNewUserModalProps {
 
 export const CreateNewUserModal: React.FC<ICreateNewUserModalProps> = ({ isOpen, handleClose }) => {
   const [createNewUser, { error, isError, isLoading, isSuccess }] = useCreateNewUserMutation();
-  const address = useAppSelector((state) => state.user.address);
+  //TODO
+  const signer = useAppSelector((state) => state.connector.signer);
   const { call } = useGetSign();
-  const [wallet, setWallet] = useState<string>(address);
+  //TODO
+  const [wallet, setWallet] = useState<string>(signer?.address ?? '');
   const [walletError, setWalletError] = useState<string>('');
   const [nickName, setNickName] = useState<string>('');
   const [description, setDescription] = useState<string>('');

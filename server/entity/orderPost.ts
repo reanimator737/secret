@@ -37,7 +37,7 @@ export class TemporaryPost {
   @Index()
   secret: string;
 
-  @Column({ type: 'timestamptz' })
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   expirationTime: Date;
 
   @ManyToOne(() => User)

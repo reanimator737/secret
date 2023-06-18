@@ -23,8 +23,8 @@ contract Pool {
         address user;
     }
 
-    mapping(address => mapping(uint => Post)) usersPosts;
-    mapping(address => uint[]) usersPostIdArray;
+    mapping(address => mapping(uint => Post)) public usersPosts;
+    mapping(address => uint[]) public usersPostIdArray;
 
 
     constructor(address _tokenAddress){

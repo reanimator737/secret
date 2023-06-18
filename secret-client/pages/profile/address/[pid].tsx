@@ -1,21 +1,18 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { useGetUserByAddressQuery } from '@/store/service';
-import { ZERO_ADDRESS } from '@/store/user';
+import { ZERO_ADDRESS } from '@/store/connector';
 import { Card, CardContent, Grid, TextField } from '@mui/material';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import { CreatePostModal } from '@/components/modals/createPost';
-import { ethers } from 'ethers';
-import secret20Shop from '@/abi/Secret20Shop.json';
-import { Secret20Shop } from '@/interface/abi';
 import { useAppSelector } from '@/hooks/stateHooks';
 
 const ProfileByAddress: React.FC = () => {
   const {
     query: { pid },
   } = useRouter();
-  const { provider, signer } = useAppSelector((state) => state.user);
+  const { provider, signer } = useAppSelector((state) => state.connector);
   const query = useMemo(() => (Array.isArray(pid) ? pid[0] : pid ?? ZERO_ADDRESS), [pid]);
 
   const { data, isLoading, isSuccess, isError } = useGetUserByAddressQuery(query);
