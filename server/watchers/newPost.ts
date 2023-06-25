@@ -14,7 +14,7 @@ export function newPostWatcherEvent(): void {
     const temporaryPostRepo = getRepository(TemporaryPost);
     const temporaryPost = await temporaryPostRepo.findOne({
       where: { secret },
-      relations: ['owner'],
+      relations: ['owner', 'categories'],
     });
 
     if (temporaryPost) {

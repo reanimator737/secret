@@ -42,7 +42,6 @@ export const CreatePostModal: React.FC<ICreateNewUserModalProps> = ({ isOpen, ha
   }, []);
 
   const onLoadingButtonClick = async () => {
-    console.log('data', data);
     if (data) {
       createNewPost({ title, description, owner: data.address, id: data.id });
       const POOL_ADDRESS = '0x66822C5C8B0e7bBEaDA80fBdb2C78758b84fC42B';
@@ -51,16 +50,13 @@ export const CreatePostModal: React.FC<ICreateNewUserModalProps> = ({ isOpen, ha
       const tokenContract = new ethers.Contract(TOKEN_ADDRESS, token.abi, signer) as unknown as SecretToken;
 
       const res = await tokenContract.approve(POOL_ADDRESS, reward);
-      console.log('token contract res', res);
 
-      console.log(ethers.solidityPackedKeccak256(['address', 'string', 'string'], [data.address, title, description]));
       const poolContract = new ethers.Contract(POOL_ADDRESS, pool.abi, signer) as unknown as Pool;
       const res2 = await poolContract.createNewPost(
         reward,
         28800,
         ethers.solidityPackedKeccak256(['address', 'string', 'string'], [data.address, title, description]),
       );
-      console.log('pool contract res', res2);
     }
   };
 

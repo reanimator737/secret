@@ -9,7 +9,8 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <Provider store={store}>
       <NavBar />
-      <div style={{ marginTop: '100px' }}>
+
+      <div style={{ marginTop: '100px', minHeight: '90vh' }}>
         <Component {...pageProps} />
       </div>
     </Provider>

@@ -13,17 +13,20 @@ import path from 'path';
 import { newPostWatcherEvent } from './watchers/newPost';
 import { Server } from 'socket.io';
 import * as http from 'http';
+import category from './routes/category';
+import { Category } from './entity/category';
+require('dotenv').config();
 
 createConnection({
   type: 'postgres',
-  host: 'localhost',
-  port: 5432,
+  host: '0.0.0.0',
+  port: 5433,
   username: 'postgres',
   password: 'password',
-  database: 'secret_db',
+  database: 'postgres',
   synchronize: true,
   logging: true,
-  entities: [Comment, CommentRate, User, OrderPost, TemporaryPost],
+  entities: [Comment, CommentRate, User, OrderPost, TemporaryPost, Category],
 });
 
 const app: Application = express();
@@ -32,10 +35,10 @@ const port: string = process.env.PORT || '8080';
 app.use(express.json({ limit: '50mb' }));
 app.use('/public', express.static(path.join(__dirname, '/public')));
 app.use(cors());
-app.use('/socket.io', cors());
 app.use('/api', userRouter);
 app.use('/api', orderPost);
 app.use('/api', comments);
+app.use('/api', category);
 
 export const server = new http.Server(app);
 export const io = new Server(server, {
@@ -48,8 +51,6 @@ export const io = new Server(server, {
 
 io.on('connection', (socket) => {
   socket.on('subscribeToCommentRoom', (commentId: number) => {
-    console.log('---------------------------------------------');
-    console.log(commentId);
     socket.join(`comment:${commentId}`);
   });
 

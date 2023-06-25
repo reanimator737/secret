@@ -3,17 +3,18 @@ import { useLazyGetAllPostsQuery } from '@/store/service';
 import { OrderPost } from '@/components/orderPost';
 import Grid from '@mui/material/Unstable_Grid2';
 import Container from '@mui/material/Container';
+import { Categories } from '@/components/categories';
 
 const Home: React.FC = () => {
   const [getAllPost, { data, isLoading, isSuccess, isError }] = useLazyGetAllPostsQuery();
 
-  console.log(data);
   useEffect(() => {
-    getAllPost(0);
+    getAllPost();
   }, []);
 
   return (
     <Container maxWidth="xl">
+      <Categories />
       <Grid container spacing={2}>
         {data &&
           data.map((el) => (

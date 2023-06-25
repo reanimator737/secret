@@ -1,5 +1,17 @@
-import { Column, Entity, Index, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+  PrimaryColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { User } from './user';
+import { Comment } from './comment';
+import { Category } from './category';
 
 @Entity()
 export class OrderPost {
@@ -20,6 +32,13 @@ export class OrderPost {
 
   @ManyToOne(() => User)
   owner: User;
+
+  @ManyToMany(() => Category)
+  @JoinTable()
+  categories: Category[];
+
+  @OneToMany(() => Comment, (comment) => comment.post)
+  comments: Comment[];
 }
 
 @Entity()
@@ -42,4 +61,11 @@ export class TemporaryPost {
 
   @ManyToOne(() => User)
   owner: User;
+
+  @OneToMany(() => Comment, (comment) => comment.post)
+  comments: Comment[];
+
+  @ManyToMany(() => Category)
+  @JoinTable()
+  categories: Category[];
 }

@@ -1,17 +1,17 @@
 import React, { useEffect } from 'react';
-import { useAddNewCommentMutation, useLazyGetOrderPostConnectQuery, useLazyGetPostByIdQuery } from '@/store/service';
+import { useLazyGetOrderPostConnectQuery, useLazyGetPostByIdQuery } from '@/store/service';
 import { useRouter } from 'next/router';
 import { OrderPost } from '@/components/orderPost';
 import Container from '@mui/material/Container';
-import Button from '@mui/material/Button';
+import { AddComment } from '@/components/comment/addComment';
+import { CommentList } from '@/components/comment/list';
 
 const OrderPostPage: React.FC = () => {
   const {
     query: { pid },
   } = useRouter();
-  const [getPost, { data, isLoading, isSuccess, isError }] = useLazyGetPostByIdQuery();
+  const [getPost, { data: postData, isLoading, isSuccess, isError }] = useLazyGetPostByIdQuery();
   const [connectOrderPost, { data: data2 }] = useLazyGetOrderPostConnectQuery();
-  const [addNewComment] = useAddNewCommentMutation();
 
   useEffect(() => {
     if (pid && !Number.isNaN(+pid)) {
@@ -20,23 +20,20 @@ const OrderPostPage: React.FC = () => {
     }
   }, [getPost, connectOrderPost, pid]);
 
-  const handler = () => {
-    if (data) {
-      addNewComment({ owner: 'owner', text: 'Text', post: data[0] });
+  useEffect(() => {
+    if (postData) {
     }
-  };
+  }, [postData]);
 
-  console.log(data2);
-
-  if (!data) {
+  if (!postData) {
     return <div></div>;
   }
 
   return (
     <Container maxWidth="xl">
-      <OrderPost {...data[0]} />
-
-      <Button onClick={handler}>TEST BUTTON</Button>
+      <OrderPost {...postData} />
+      <CommentList id={postData.id} />
+      <AddComment {...postData} />
     </Container>
   );
 };

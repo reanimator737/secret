@@ -37,7 +37,7 @@ class CommentController {
       return;
     }
 
-    if (comment.owner === user.address) {
+    if (comment.owner.address === user.address) {
       res.json({ todo: 'error' });
       return;
     }
@@ -71,7 +71,7 @@ class CommentController {
       return;
     }
 
-    if (comment.owner === address) {
+    if (comment.owner.address === address) {
       res.json({ todo: 'error' });
       return;
     }
@@ -101,7 +101,7 @@ class CommentController {
       return;
     }
 
-    if (comment.owner === user.address) {
+    if (comment.owner.address === user.address) {
       res.json({ todo: 'error' });
       return;
     }
@@ -135,7 +135,7 @@ class CommentController {
       return;
     }
 
-    if (comment.owner === address) {
+    if (comment.owner.address === address) {
       res.json({ todo: 'error' });
       return;
     }
@@ -204,9 +204,10 @@ class CommentController {
     res.json(comment);
   }
 
-  async getAllComments(_: never, res: Response) {
+  async getAllCommentsFromPost(req: Request<{ postId: string }>, res: Response) {
+    const postId = req.query;
     const CommentRepo = getRepository(Comment);
-    const comments = await CommentRepo.find();
+    const comments = await CommentRepo.find({ where: { post: postId }, relations: ['commentRates', 'owner'] });
     res.json(comments);
   }
 }

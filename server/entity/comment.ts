@@ -1,13 +1,15 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { OrderPost } from './orderPost';
+import { CommentRate } from './commentRate';
+import { User } from './user';
 
 @Entity()
 export class Comment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  owner: string;
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  owner: User;
 
   @Column()
   text: string;
@@ -15,6 +17,9 @@ export class Comment {
   @Column()
   hasOwnerLike: boolean;
 
-  @ManyToOne(() => OrderPost)
+  @ManyToOne(() => OrderPost, { onDelete: 'CASCADE' })
   post: OrderPost;
+
+  @OneToMany(() => CommentRate, (commentRate) => commentRate.comment)
+  commentRates: CommentRate[];
 }

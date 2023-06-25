@@ -8,6 +8,7 @@ import { getOrderPostPage } from '@/constants/routes';
 
 export const OrderPost: React.FC<IRPost> = ({ owner, id, reward, title, isActive, description }) => {
   //TODO remove
+
   if (owner === null) {
     return (
       <Card variant="outlined">
@@ -39,7 +40,11 @@ export const OrderPost: React.FC<IRPost> = ({ owner, id, reward, title, isActive
             {description}
           </Typography>
         </CardContent>
-        <CardHeader avatar={<Avatar aria-label="recipe">R</Avatar>} title={owner.nickName} subheader={owner.address} />
+        <CardHeader
+          avatar={<Avatar aria-label="recipe">R</Avatar>}
+          title={owner?.nickName ?? 'empty'}
+          subheader={owner.address}
+        />
       </Card>
     </Link>
   );

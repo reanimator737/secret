@@ -1,8 +1,8 @@
 import { useLazyGetUserByAddressQuery } from '@/store/service';
 import { useAppSelector } from '@/hooks/stateHooks';
 import { useEffect } from 'react';
-import { DefaultFetch } from '@/types/defaultFetch';
-import { IUserInfo } from '@/types/user';
+import { DefaultFetch } from '@/interface/defaultFetch';
+import { IUserInfo } from '@/interface/user';
 
 export function useGetUserData(): DefaultFetch<IUserInfo | undefined> {
   const signer = useAppSelector((state) => state.connector.signer);

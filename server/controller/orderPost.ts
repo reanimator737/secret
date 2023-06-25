@@ -6,7 +6,7 @@ import { User } from '../entity/user';
 
 class OrderPostController {
   async createNewTemporaryPost(req: Request<{}, {}, Omit<TemporaryPost, 'secret' | 'expirationTime'>>, res: Response) {
-    const { title, description, owner, id } = req.body;
+    const { title, description, owner, id, categories } = req.body;
     const temporaryPostRepo = getRepository(TemporaryPost);
     const userRepo = getRepository(User);
 
@@ -22,6 +22,7 @@ class OrderPostController {
       description,
       secret,
       title,
+      categories,
     });
     await temporaryPostRepo.save(newTemporaryPost);
     return res.json(newTemporaryPost);
@@ -40,7 +41,7 @@ class OrderPostController {
   }
 
   async createNewPost(temporaryPost: TemporaryPost, reward: BigNumberish, id: BigNumberish) {
-    const { description, title, owner } = temporaryPost;
+    const { description, title, owner, categories } = temporaryPost;
     const temporaryPostRepo = getRepository(TemporaryPost);
     const orderPostRepository = getRepository(OrderPost);
 
@@ -48,6 +49,7 @@ class OrderPostController {
       reward: Number(reward),
       isActive: true,
       description,
+      categories,
       owner,
       title,
       id: Number(id),
@@ -59,8 +61,8 @@ class OrderPostController {
 
   async getOrderPostById(req: Request<{ id: number }>, res: Response) {
     const id = req.params.id;
-    const orderPost = getRepository(OrderPost);
-    const post = await orderPost.find({ where: { id }, relations: ['owner'] });
+    const orderPostRepository = getRepository(OrderPost);
+    const post = await orderPostRepository.findOne({ where: { id }, relations: ['owner', 'comments'] });
     return res.json(post);
   }
 }
