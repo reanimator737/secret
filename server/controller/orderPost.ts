@@ -3,6 +3,7 @@ import { OrderPost, TemporaryPost } from '../entity/orderPost';
 import { getRepository } from 'typeorm';
 import { BigNumberish, ethers } from 'ethers';
 import { User } from '../entity/user';
+import { CommentRate } from '../entity/commentRate';
 
 class OrderPostController {
   async createNewTemporaryPost(req: Request<{}, {}, Omit<TemporaryPost, 'secret' | 'expirationTime'>>, res: Response) {
@@ -62,8 +63,23 @@ class OrderPostController {
   async getOrderPostById(req: Request<{ id: number }>, res: Response) {
     const id = req.params.id;
     const orderPostRepository = getRepository(OrderPost);
-    const post = await orderPostRepository.findOne({ where: { id }, relations: ['owner', 'comments'] });
+    const post = await orderPostRepository.findOne({ where: { id }, relations: ['owner'] });
     return res.json(post);
+  }
+
+  async getAllUserReactionFromPost(req: Request<{ id: string; address: string }>, res: Response) {
+    const { id, address } = req.params;
+
+    const commentRateRepository = getRepository(CommentRate);
+    const reactions = await commentRateRepository
+      .createQueryBuilder('commentRate')
+      .innerJoin('commentRate.comment', 'comment')
+      .innerJoin('comment.post', 'post')
+      .innerJoin('commentRate.user', 'user', 'user.address = :address', { address })
+      .where('post.id = :postId', { postId: id })
+      .getMany();
+
+    res.status(200).json(reactions);
   }
 }
 

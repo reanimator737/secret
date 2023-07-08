@@ -4,7 +4,7 @@ import cors from 'cors';
 import orderPost from './routes/orderPost';
 import comments from './routes/comment';
 import userRouter from './routes/user';
-import { createConnection } from 'typeorm';
+import { createConnection, getRepository } from 'typeorm';
 import { CommentRate } from './entity/commentRate';
 import { OrderPost, TemporaryPost } from './entity/orderPost';
 import { User } from './entity/user';
@@ -15,6 +15,7 @@ import { Server } from 'socket.io';
 import * as http from 'http';
 import category from './routes/category';
 import { Category } from './entity/category';
+import { Websocket } from './websocket';
 require('dotenv').config();
 
 createConnection({
@@ -30,7 +31,7 @@ createConnection({
 });
 
 const app: Application = express();
-const port: string = process.env.PORT || '8080';
+export const port: string = process.env.PORT || '8080';
 
 app.use(express.json({ limit: '50mb' }));
 app.use('/public', express.static(path.join(__dirname, '/public')));
@@ -41,23 +42,7 @@ app.use('/api', comments);
 app.use('/api', category);
 
 export const server = new http.Server(app);
-export const io = new Server(server, {
-  cors: {
-    origin: true,
-    credentials: true,
-  },
-  allowEIO3: true,
-});
-
-io.on('connection', (socket) => {
-  socket.on('subscribeToCommentRoom', (commentId: number) => {
-    socket.join(`comment:${commentId}`);
-  });
-
-  socket.on('disconnect', () => {
-    console.log('user disconnected');
-  });
-});
+export const socket = new Websocket(server);
 
 server.listen(port);
 newPostWatcherEvent();

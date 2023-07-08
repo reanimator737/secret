@@ -15,8 +15,5 @@ export class CommentRate {
   user: User;
 
   @Column()
-  is_liked: boolean;
-
-  @Column()
-  is_disliked: boolean;
+  isLiked: boolean;
 }

@@ -22,4 +22,10 @@ export class Comment {
 
   @OneToMany(() => CommentRate, (commentRate) => commentRate.comment)
   commentRates: CommentRate[];
+
+  @Column({ default: 0 })
+  likesCount: number;
+
+  @Column({ default: 0 })
+  dislikesCount: number;
 }

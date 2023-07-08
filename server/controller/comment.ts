@@ -4,7 +4,7 @@ import { CommentRate } from '../entity/commentRate';
 import { FindOneOptions, getRepository } from 'typeorm';
 import { User } from '../entity/user';
 import { OrderPost } from '../entity/orderPost';
-import { io } from '../index';
+import { socket } from '../index';
 
 class CommentController {
   async addComment(req: Request<{}, {}, Omit<Comment, 'id' | 'hasOwnerLike'>>, res: Response) {
@@ -13,7 +13,7 @@ class CommentController {
     const newComment = CommentRepo.create({ post, text, hasOwnerLike: false, owner });
     await CommentRepo.save(newComment);
     res.status(200).send(newComment);
-    io.to(`comment:${post.id}`).emit('newComment', newComment);
+    socket.emitNewComment({ newComment, postId: post.id });
   }
 
   async removeComment(req: Request<{}, {}, Pick<Comment, 'id' | 'owner'>>, res: Response) {
@@ -30,33 +30,62 @@ class CommentController {
 
   async addLike(req: Request<{}, {}, { user: User; commentId: number }>, res: Response) {
     const { user, commentId } = req.body;
-    const CommentRepo = getRepository(Comment);
-    const comment = await CommentRepo.findOneById(commentId);
+    console.log('-------------------------------------');
+    console.log(1);
+    const commentRepo = getRepository(Comment);
+    const comment = await commentRepo.findOne({ where: { id: commentId }, relations: ['owner', 'post'] });
     if (!comment) {
       res.json({ todo: 'error' });
       return;
     }
+
+    console.log(2);
 
     if (comment.owner.address === user.address) {
       res.json({ todo: 'error' });
       return;
     }
 
-    const CommentRateRepo = getRepository(CommentRate);
-    let userCommentRate = await CommentRateRepo.findOne({
-      where: { comment: commentId, user: user.address },
-    } as FindOneOptions<CommentRate>);
+    console.log(3);
 
-    if (!userCommentRate) {
-      userCommentRate = new CommentRate();
-      userCommentRate.user = user;
+    const CommentRateRepo = getRepository(CommentRate);
+    let existingRate = await CommentRateRepo.findOne({
+      where: { comment: { id: commentId }, user },
+    });
+
+    console.log(4);
+
+    //TODO
+    if (!existingRate) {
+      console.log(5);
+      const newCommentRate = new CommentRate();
+      newCommentRate.user = user;
+      newCommentRate.comment = comment;
+      newCommentRate.isLiked = true;
+      await CommentRateRepo.save(newCommentRate);
+      comment.likesCount++;
+      await commentRepo.save(comment);
+      res.json(newCommentRate);
+      socket.emitReaction(comment);
+      return;
     }
 
-    userCommentRate.is_disliked = false;
-    userCommentRate.is_liked = true;
-    await CommentRateRepo.save(userCommentRate);
+    console.log(6);
+    if (existingRate.isLiked) {
+      res.json({ todo: 'call another method' });
+      return;
+    }
+    console.log(7);
 
-    res.json(userCommentRate);
+    existingRate.isLiked = true;
+    comment.likesCount++;
+    comment.dislikesCount--;
+    await commentRepo.save(comment);
+    await CommentRateRepo.save(existingRate);
+    res.json(existingRate);
+    socket.emitReaction(comment);
+
+    return;
   }
 
   async removeLike(req: Request<{}, {}, { user: User; commentId: number }>, res: Response) {
@@ -86,7 +115,7 @@ class CommentController {
       return;
     }
 
-    userCommentRate.is_liked = false;
+    userCommentRate.isLiked = false;
     await CommentRateRepo.save(userCommentRate);
 
     res.json(userCommentRate);
@@ -116,8 +145,7 @@ class CommentController {
       userCommentRate.user = user;
     }
 
-    userCommentRate.is_disliked = true;
-    userCommentRate.is_liked = false;
+    userCommentRate.isLiked = false;
     await CommentRateRepo.save(userCommentRate);
 
     res.json(userCommentRate);
@@ -150,7 +178,6 @@ class CommentController {
       return;
     }
 
-    userCommentRate.is_disliked = false;
     await CommentRateRepo.save(userCommentRate);
 
     res.json(userCommentRate);
