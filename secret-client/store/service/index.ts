@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { IUserInfo } from '@/interface/user';
 import { io } from 'socket.io-client';
+import { WebSocket } from '@/constants/webSocket';
 
 const TODO = 'http://localhost:8080/api/';
 
@@ -26,10 +27,8 @@ export interface IRPost {
   owner: IUserInfo;
 }
 
-export interface ICommentRate {
-  id: number;
-  is_liked: boolean;
-  is_disliked: boolean;
+export interface IRPostWithComments extends IRPost {
+  comments: IComment[];
 }
 
 export interface IComment {
@@ -41,7 +40,13 @@ export interface IComment {
 
   hasOwnerLike: boolean;
 
-  commentRates: ICommentRate[];
+  likesCount: number;
+  dislikesCount: number;
+}
+
+export interface ICommentCompProps extends IComment {
+  hasUserLike: boolean;
+  hasUserDislike: boolean;
 }
 
 export const dataAPI = createApi({
@@ -121,15 +126,42 @@ export const dataAPI = createApi({
           console.log('connect');
         });
 
-        socket.emit('subscribeToCommentRoom', orderPostId);
+        socket.emit(WebSocket.SUBSCRIBE_TO_COMMENT_ROOM, orderPostId);
 
-        socket.on('newComment', (message) => {
+        socket.on(WebSocket.POST_GET_ALL_DATA, (data) => {
           updateCachedData((draft) => {
-            draft.push(message);
+            draft.push({ type: WebSocket.POST_GET_ALL_DATA, data });
+          });
+        });
+
+        socket.on(WebSocket.NEW_COMMENT, (data) => {
+          updateCachedData((draft) => {
+            draft.push({ type: WebSocket.NEW_COMMENT, data });
+          });
+        });
+
+        socket.on(WebSocket.NEW_REACTION, (data) => {
+          updateCachedData((draft) => {
+            draft.push({ type: WebSocket.NEW_REACTION, data });
           });
         });
 
         await cacheEntryRemoved;
+      },
+    }),
+
+    getAllUserReactionFromPost: builder.query<any, { id: number; address: string }>({
+      query: ({ id, address }) => `order-post/reaction/${id}/${address}`,
+    }),
+
+    //TODO
+    addLike: builder.mutation({
+      query(arg: any) {
+        return {
+          url: '/comments/like',
+          method: 'PATCH',
+          body: arg,
+        };
       },
     }),
   }),
@@ -146,4 +178,7 @@ export const {
   useAddNewCommentMutation,
   useGetCategoriesQuery,
   useLazyGetCommentsForPostQuery,
+  useLazyGetAllUserReactionFromPostQuery,
+
+  useAddLikeMutation,
 } = dataAPI;
