@@ -1,10 +1,59 @@
 import { Response, Request } from 'express';
 import { Comment } from '../entity/comment';
 import { CommentRate } from '../entity/commentRate';
-import { FindOneOptions, getRepository } from 'typeorm';
+import { FindOneOptions, getRepository, Repository } from 'typeorm';
 import { User } from '../entity/user';
 import { OrderPost } from '../entity/orderPost';
 import { socket } from '../index';
+
+interface ITryFindComment {
+  commentRepo: Repository<Comment>;
+  comment: Comment;
+}
+
+async function tryFindComment(commentId: number): Promise<ITryFindComment> {
+  const commentRepo = getRepository(Comment);
+  const comment = await commentRepo.findOne({ where: { id: commentId }, relations: ['owner', 'post'] });
+  if (!comment) {
+    console.log('comment not exist');
+    throw new Error('3');
+  }
+
+  return { commentRepo, comment };
+}
+
+interface ITryFindCommentRate {
+  commentRateRepo: Repository<CommentRate>;
+  commentRate: CommentRate | null;
+}
+
+interface IGetCommentRate {
+  commentRateRepo: Repository<CommentRate>;
+  commentRate: CommentRate;
+  isExisted: boolean;
+}
+
+async function tryFindCommentRate(comment: Comment, user: User): Promise<ITryFindCommentRate> {
+  const commentRateRepo = getRepository(CommentRate);
+  let commentRate = await commentRateRepo.findOne({
+    where: { comment: { id: comment.id }, user },
+  });
+
+  return { commentRateRepo, commentRate };
+}
+
+async function getCommentRate(comment: Comment, user: User): Promise<IGetCommentRate> {
+  const { commentRateRepo, commentRate } = await tryFindCommentRate(comment, user);
+
+  if (commentRate === null) {
+    const newCommentRate = new CommentRate();
+    newCommentRate.user = user;
+    newCommentRate.comment = comment;
+    return { commentRateRepo, isExisted: false, commentRate: newCommentRate };
+  }
+
+  return { commentRateRepo, isExisted: true, commentRate };
+}
 
 class CommentController {
   async addComment(req: Request<{}, {}, Omit<Comment, 'id' | 'hasOwnerLike'>>, res: Response) {
@@ -29,158 +78,88 @@ class CommentController {
   }
 
   async addLike(req: Request<{}, {}, { user: User; commentId: number }>, res: Response) {
-    const { user, commentId } = req.body;
-    console.log('-------------------------------------');
-    console.log(1);
-    const commentRepo = getRepository(Comment);
-    const comment = await commentRepo.findOne({ where: { id: commentId }, relations: ['owner', 'post'] });
-    if (!comment) {
-      res.json({ todo: 'error' });
-      return;
-    }
+    try {
+      const { user, commentId } = req.body;
+      const { commentRepo, comment } = await tryFindComment(commentId);
+      if (comment.owner.address === user.address) {
+        throw new Error('1');
+      }
+      const { commentRateRepo, isExisted, commentRate } = await getCommentRate(comment, user);
+      if (isExisted) {
+        if (commentRate.isLiked) {
+          throw new Error('2');
+        }
 
-    console.log(2);
-
-    if (comment.owner.address === user.address) {
-      res.json({ todo: 'error' });
-      return;
-    }
-
-    console.log(3);
-
-    const CommentRateRepo = getRepository(CommentRate);
-    let existingRate = await CommentRateRepo.findOne({
-      where: { comment: { id: commentId }, user },
-    });
-
-    console.log(4);
-
-    //TODO
-    if (!existingRate) {
-      console.log(5);
-      const newCommentRate = new CommentRate();
-      newCommentRate.user = user;
-      newCommentRate.comment = comment;
-      newCommentRate.isLiked = true;
-      await CommentRateRepo.save(newCommentRate);
+        comment.dislikesCount--;
+      }
+      commentRate.isLiked = true;
       comment.likesCount++;
       await commentRepo.save(comment);
-      res.json(newCommentRate);
-      socket.emitReaction(comment);
-      return;
+      await commentRateRepo.save(commentRate);
+      res.json(commentRate);
+      socket.emitReaction({
+        comment,
+        actionTriggerBy: user,
+        isLiked: true,
+      });
+    } catch (e) {
+      res.status(400).send(e);
     }
-
-    console.log(6);
-    if (existingRate.isLiked) {
-      res.json({ todo: 'call another method' });
-      return;
-    }
-    console.log(7);
-
-    existingRate.isLiked = true;
-    comment.likesCount++;
-    comment.dislikesCount--;
-    await commentRepo.save(comment);
-    await CommentRateRepo.save(existingRate);
-    res.json(existingRate);
-    socket.emitReaction(comment);
-
-    return;
   }
 
-  async removeLike(req: Request<{}, {}, { user: User; commentId: number }>, res: Response) {
-    const {
-      user: { address },
-      commentId,
-    } = req.body;
-    const CommentRepo = getRepository(Comment);
-    const comment = await CommentRepo.findOneById(commentId);
-    if (!comment) {
-      res.json({ todo: 'error' });
-      return;
+  async removeReaction(req: Request<{}, {}, { user: User; commentId: number }>, res: Response) {
+    try {
+      const { user, commentId } = req.body;
+
+      const { comment, commentRepo } = await tryFindComment(commentId);
+      const { commentRateRepo, commentRate } = await tryFindCommentRate(comment, user);
+
+      if (!commentRate) {
+        throw new Error();
+      }
+
+      commentRate.isLiked ? (comment.likesCount -= 1) : (comment.dislikesCount -= 1);
+      await commentRepo.save(comment);
+      await commentRateRepo.delete(commentRate);
+
+      res.json(commentRate);
+      socket.emitDeleteReaction({ comment, actionTriggerBy: user });
+    } catch (e) {
+      res.status(400).send(e);
     }
-
-    if (comment.owner.address === address) {
-      res.json({ todo: 'error' });
-      return;
-    }
-
-    const CommentRateRepo = getRepository(CommentRate);
-    let userCommentRate = await CommentRateRepo.findOne({
-      where: { comment: commentId, user: address },
-    } as FindOneOptions<CommentRate>);
-
-    if (!userCommentRate) {
-      res.json({ todo: 'error' });
-      return;
-    }
-
-    userCommentRate.isLiked = false;
-    await CommentRateRepo.save(userCommentRate);
-
-    res.json(userCommentRate);
   }
 
   async addDislike(req: Request<{}, {}, { user: User; commentId: number }>, res: Response) {
-    const { user, commentId } = req.body;
-    const CommentRepo = getRepository(Comment);
-    const comment = await CommentRepo.findOneById(commentId);
-    if (!comment) {
-      res.json({ todo: 'error' });
-      return;
+    try {
+      const { user, commentId } = req.body;
+      const { commentRepo, comment } = await tryFindComment(commentId);
+
+      if (comment.owner.address === user.address) {
+        throw new Error('1');
+      }
+
+      const { commentRateRepo, isExisted, commentRate } = await getCommentRate(comment, user);
+
+      if (isExisted) {
+        if (!commentRate.isLiked) {
+          throw new Error('2');
+        }
+        comment.likesCount--;
+      }
+      commentRate.isLiked = false;
+      comment.dislikesCount++;
+      await commentRepo.save(comment);
+      await commentRateRepo.save(commentRate);
+      res.json(commentRate);
+
+      socket.emitReaction({
+        comment,
+        actionTriggerBy: user,
+        isLiked: false,
+      });
+    } catch (e) {
+      res.status(400).send(e);
     }
-
-    if (comment.owner.address === user.address) {
-      res.json({ todo: 'error' });
-      return;
-    }
-
-    const CommentRateRepo = getRepository(CommentRate);
-    let userCommentRate = await CommentRateRepo.findOne({
-      where: { comment: commentId, user: user.address },
-    } as FindOneOptions<CommentRate>);
-
-    if (!userCommentRate) {
-      userCommentRate = new CommentRate();
-      userCommentRate.user = user;
-    }
-
-    userCommentRate.isLiked = false;
-    await CommentRateRepo.save(userCommentRate);
-
-    res.json(userCommentRate);
-  }
-
-  async removeDislike(req: Request<{}, {}, { user: User; commentId: number }>, res: Response) {
-    const {
-      user: { address },
-      commentId,
-    } = req.body;
-    const CommentRepo = getRepository(Comment);
-    const comment = await CommentRepo.findOneById(commentId);
-    if (!comment) {
-      res.json({ todo: 'error' });
-      return;
-    }
-
-    if (comment.owner.address === address) {
-      res.json({ todo: 'error' });
-      return;
-    }
-
-    const CommentRateRepo = getRepository(CommentRate);
-    let userCommentRate = await CommentRateRepo.findOne({
-      where: { comment: commentId, user: address },
-    } as FindOneOptions<CommentRate>);
-
-    if (!userCommentRate) {
-      res.json({ todo: 'error' });
-      return;
-    }
-
-    await CommentRateRepo.save(userCommentRate);
-
-    res.json(userCommentRate);
   }
 
   async addOwnerLike(req: Request<{}, {}, { id: string; address: string }>, res: Response) {

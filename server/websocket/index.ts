@@ -3,6 +3,7 @@ import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import * as http from 'http';
 import { getRepository } from 'typeorm';
 import { Comment } from '../entity/comment';
+import { User } from '../entity/user';
 
 export class Websocket {
   readonly POST_GET_ALL_DATA = 'POST_GET_ALL_DATA';
@@ -10,6 +11,7 @@ export class Websocket {
   readonly ROOM_POST = 'post:';
   readonly NEW_COMMENT = 'NEW_COMMENT';
   readonly NEW_REACTION = 'NEW_REACTION';
+  readonly DELETE_REACTION = 'DELETE_REACTION';
 
   private io: Server<DefaultEventsMap, DefaultEventsMap>;
   private socket: Socket<DefaultEventsMap, DefaultEventsMap>;
@@ -60,7 +62,22 @@ export class Websocket {
     this.io.to(this.commentRoomByPostId(postId)).emit(this.NEW_COMMENT, newComment);
   }
 
-  public emitReaction(comment: Comment): void {
-    this.io.to(this.commentRoomByPostId(comment.post.id)).emit(this.NEW_REACTION, comment);
+  public emitReaction(data: IEmitReaction): void {
+    this.io.to(this.commentRoomByPostId(data.comment.post.id)).emit(this.NEW_REACTION, data);
   }
+
+  public emitDeleteReaction(data: IDeleteReaction): void {
+    this.io.to(this.commentRoomByPostId(data.comment.post.id)).emit(this.DELETE_REACTION, data);
+  }
+}
+
+interface IDeleteReaction {
+  comment: Comment;
+  actionTriggerBy: User;
+}
+
+interface IEmitReaction {
+  comment: Comment;
+  actionTriggerBy: User;
+  isLiked: boolean;
 }

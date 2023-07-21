@@ -47,6 +47,9 @@ export interface IComment {
 export interface ICommentCompProps extends IComment {
   hasUserLike: boolean;
   hasUserDislike: boolean;
+  removeReactionHandler: (commentId: number) => void;
+  addLikeHandler: (commentId: number) => void;
+  addDislikeHandler: (commentId: number) => void;
 }
 
 export const dataAPI = createApi({
@@ -128,21 +131,27 @@ export const dataAPI = createApi({
 
         socket.emit(WebSocket.SUBSCRIBE_TO_COMMENT_ROOM, orderPostId);
 
-        socket.on(WebSocket.POST_GET_ALL_DATA, (data) => {
+        socket.on(WebSocket.POST_GET_ALL_DATA, (data: IComment[]) => {
           updateCachedData((draft) => {
             draft.push({ type: WebSocket.POST_GET_ALL_DATA, data });
           });
         });
 
-        socket.on(WebSocket.NEW_COMMENT, (data) => {
+        socket.on(WebSocket.NEW_COMMENT, (data: any) => {
           updateCachedData((draft) => {
             draft.push({ type: WebSocket.NEW_COMMENT, data });
           });
         });
 
-        socket.on(WebSocket.NEW_REACTION, (data) => {
+        socket.on(WebSocket.NEW_REACTION, (data: { comment: IComment; user: IUserInfo; isLiked: boolean }) => {
           updateCachedData((draft) => {
             draft.push({ type: WebSocket.NEW_REACTION, data });
+          });
+        });
+
+        socket.on(WebSocket.DELETE_REACTION, (data) => {
+          updateCachedData((draft) => {
+            draft.push({ type: WebSocket.DELETE_REACTION, data });
           });
         });
 
@@ -164,6 +173,26 @@ export const dataAPI = createApi({
         };
       },
     }),
+
+    addDislike: builder.mutation({
+      query(arg: any) {
+        return {
+          url: '/comments/dislike',
+          method: 'PATCH',
+          body: arg,
+        };
+      },
+    }),
+
+    removeReaction: builder.mutation({
+      query(arg: any) {
+        return {
+          url: '/comments/reaction',
+          method: 'DELETE',
+          body: arg,
+        };
+      },
+    }),
   }),
 });
 
@@ -179,6 +208,7 @@ export const {
   useGetCategoriesQuery,
   useLazyGetCommentsForPostQuery,
   useLazyGetAllUserReactionFromPostQuery,
-
+  useRemoveReactionMutation,
   useAddLikeMutation,
+  useAddDislikeMutation,
 } = dataAPI;

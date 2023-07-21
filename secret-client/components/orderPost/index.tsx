@@ -7,28 +7,6 @@ import Link from 'next/link';
 import { getOrderPostPage } from '@/constants/routes';
 
 export const OrderPost: React.FC<IRPost> = ({ owner, id, reward, title, isActive, description }) => {
-  //TODO remove
-
-  if (owner === null) {
-    return (
-      <Card variant="outlined">
-        <CardHeader>
-          <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-            {title}
-          </Typography>
-          <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-            {reward}
-          </Typography>
-        </CardHeader>
-        <CardContent>
-          <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-            {description}
-          </Typography>
-        </CardContent>
-      </Card>
-    );
-  }
-
   //TODO
   return (
     <Link href={getOrderPostPage(id)}>

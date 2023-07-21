@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   IComment,
+  useAddDislikeMutation,
   useAddLikeMutation,
   useLazyGetAllUserReactionFromPostQuery,
   useLazyGetOrderPostConnectQuery,
+  useRemoveReactionMutation,
 } from '@/store/service';
 import { Comment } from '@/components/comment';
 import { WebSocket } from '@/constants/webSocket';
@@ -15,47 +17,82 @@ export const CommentList: React.FC<{ id: number }> = ({ id }) => {
   const { signer } = useAppSelector((state) => state.connector);
   const [connectOrderPost, { data: wsData, isLoading }] = useLazyGetOrderPostConnectQuery();
   const [data, setData] = useState<IComment[]>([]);
-  const [getAllUserReactions, { data: userReactions }] = useLazyGetAllUserReactionFromPostQuery();
+  const [getAllUserReactions, { data: dbUserReactions }] = useLazyGetAllUserReactionFromPostQuery();
+  const [userReactions, setUserReactions] = useState([]);
+
+  const [removeReaction] = useRemoveReactionMutation();
   const [addLike] = useAddLikeMutation();
-  const { data: user, isSuccess } = useGetUserData();
+  const [addDislike] = useAddDislikeMutation();
+  const { data: user } = useGetUserData();
+
+  const removeReactionHandler = useCallback(
+    (commentId: number) => {
+      if (user) {
+        removeReaction({ commentId, user });
+      }
+    },
+    [removeReaction, user],
+  );
 
   const addLikeHandler = useCallback(
     (commentId: number) => {
       if (user) {
-        console.log({ commentId, user });
         addLike({ commentId, user });
       }
     },
     [addLike, user],
   );
 
-  const renderData = useMemo(() => {
-    if (!userReactions || userReactions.length === 0) {
+  const addDislikeHandler = useCallback(
+    (commentId: number) => {
+      if (user) {
+        addDislike({ commentId, user });
+      }
+    },
+    [addLike, user],
+  );
+
+  const prerenderData = useMemo(() => {
+    if (userReactions.length === 0) {
       return data.map((comment) => (
         <Grid key={comment.id} xs={12} item>
-          <Comment hasUserLike={false} hasUserDislike={false} {...comment} />
+          <Comment
+            hasUserLike={false}
+            hasUserDislike={false}
+            {...comment}
+            addLikeHandler={addLikeHandler}
+            addDislikeHandler={addDislikeHandler}
+            removeReactionHandler={removeReactionHandler}
+          />
         </Grid>
       ));
     }
 
     const cloneData = data.map((el) => ({ hasUserLike: false, hasUserDislike: false, ...el }));
-    console.log('userReactions', userReactions);
-    userReactions.forEach(({ id, isLiked }) => {
+    userReactions.forEach(({ comment: { id }, isLiked }) => {
       const el = cloneData.find((el) => el.id === id);
 
       if (el) {
         el.hasUserLike = isLiked;
         el.hasUserDislike = !isLiked;
-        console.log(el);
       }
     });
 
     return cloneData.map((comment) => (
       <Grid key={comment.id} xs={12} item>
-        <Comment {...comment} />
+        <Comment
+          {...comment}
+          addLikeHandler={addLikeHandler}
+          addDislikeHandler={addDislikeHandler}
+          removeReactionHandler={removeReactionHandler}
+        />
       </Grid>
     ));
   }, [data, userReactions]);
+
+  useEffect(() => {
+    setUserReactions(dbUserReactions ?? []);
+  }, [dbUserReactions]);
 
   useEffect(() => {
     connectOrderPost(id);
@@ -89,8 +126,20 @@ export const CommentList: React.FC<{ id: number }> = ({ id }) => {
         setData(data);
         break;
       case WebSocket.NEW_REACTION:
-        console.log('newReaction');
+        setData((prev) => {
+          return prev.map((el) => (el.id === data.comment.id ? data.comment : el));
+        });
+        if (user?.id === data.actionTriggerBy.id) {
+          setUserReactions((prev) => [...prev, { isLiked: data.isLiked, comment: data.comment }]);
+        }
         break;
+      case WebSocket.DELETE_REACTION:
+        setData((prev) => {
+          return prev.map((el) => (el.id === data.comment.id ? data.comment : el));
+        });
+        if (user?.id === data.actionTriggerBy.id) {
+          setUserReactions((prev) => prev.filter((el) => el.comment.id !== data.comment.id));
+        }
     }
   }, [wsData]);
 
@@ -100,7 +149,7 @@ export const CommentList: React.FC<{ id: number }> = ({ id }) => {
 
   return (
     <Grid container spacing={1} marginTop={2}>
-      {renderData}
+      {prerenderData}
     </Grid>
   );
 };

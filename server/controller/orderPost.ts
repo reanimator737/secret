@@ -73,7 +73,7 @@ class OrderPostController {
     const commentRateRepository = getRepository(CommentRate);
     const reactions = await commentRateRepository
       .createQueryBuilder('commentRate')
-      .innerJoin('commentRate.comment', 'comment')
+      .leftJoinAndSelect('commentRate.comment', 'comment')
       .innerJoin('comment.post', 'post')
       .innerJoin('commentRate.user', 'user', 'user.address = :address', { address })
       .where('post.id = :postId', { postId: id })

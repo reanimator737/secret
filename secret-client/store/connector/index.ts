@@ -32,9 +32,13 @@ const slice = createSlice({
     setSignMsg: (state, action: PayloadAction<string>) => {
       state.signMsg = action.payload;
     },
+
+    disconnect: () => {
+      return initialState;
+    },
   },
 });
 
 export default slice.reducer;
 
-export const { setSigner, setSignMsg, setProvider } = slice.actions;
+export const { setSigner, setSignMsg, setProvider, disconnect } = slice.actions;

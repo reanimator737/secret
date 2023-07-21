@@ -1,6 +1,6 @@
+import { AppDispatch } from '@/store';
 import { ethers } from 'ethers';
 import { setProvider, setSigner } from '@/store/connector';
-import { AppDispatch } from '@/store';
 
 export async function tryGetSigner(dispatch: AppDispatch) {
   // @ts-ignore

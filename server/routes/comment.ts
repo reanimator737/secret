@@ -6,9 +6,8 @@ comments.get('/comments/:postId', commentController.getAllCommentsFromPost);
 comments.delete('/comments', commentController.removeComment);
 comments.post('/comments', commentController.addComment);
 comments.patch('/comments/like', commentController.addLike);
-comments.patch('/comments/like/remove', commentController.removeLike);
+comments.delete('/comments/reaction', commentController.removeReaction);
 comments.patch('/comments/dislike', commentController.addDislike);
-comments.patch('/comments/dislike/remove', commentController.removeDislike);
 comments.patch('/comments/ownerLike', commentController.addOwnerLike);
 comments.patch('/comments/ownerLike/remove', commentController.removeOwnerLike);
 
